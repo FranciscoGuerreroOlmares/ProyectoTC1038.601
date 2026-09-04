@@ -7,3 +7,8 @@ para que nuestro día sea lo mejor aprovechado.
 Este generador funcionaria de tal modo que el usuario ingresa sus clases/actividades planeadas, definiendo sus horas
 libres y horarios invariables, y de este modo, el generador acomodaría las actividades en función de las 
 necesidades que tenga el usuario, con la posibilidad de generar uno diferente si este no es de su agrado.
+Algoritmo 
+E0 (día, hora de inicio, hora de fin)
+duración <--- hora inicial-hora final
+porcentaje del día usado <--- (duración/24)*100
+EF ( resumen de las actividades)
