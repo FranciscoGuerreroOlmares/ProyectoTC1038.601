@@ -1,14 +1,25 @@
-Proyecto Generador de horarios 
-Contexto:
-Un gestor de inventarios es una herramienta que nos puede ayudar mucho organizando y optimizando de gran manera
-nuestros tiempos, sobre todo a estudiantes como nosotros con clases, trabajos en equipo y actividades extraescolares,
-por esto es que considero importante un generador de horarios que se adapte a nuestras necesidades y nos apoye
-para que nuestro día sea lo mejor aprovechado.
-Este generador funcionaria de tal modo que el usuario ingresa sus clases/actividades planeadas, definiendo sus horas
-libres y horarios invariables, y de este modo, el generador acomodaría las actividades en función de las 
-necesidades que tenga el usuario, con la posibilidad de generar uno diferente si este no es de su agrado.
-Algoritmo 
-E0 (día, hora de inicio, hora de fin)
-duración <--- hora inicial-hora final
-porcentaje del día usado <--- (duración/24)*100
-EF ( resumen de las actividades)
+# Generador de horarios/administrador de tiempo
+
+## Para que sirve:
+Programa que registra los bloques de tiempo ocupados por el usuario a lo largo
+de un dia, incluyendo actividades y tiempos libres de estas, usandolas para obtener
+informacion calculada a partir de ellos.
+
+## Que hace:
+   Ayuda a registrar el tiempo del usuario a lo largo de un dia, calculando:\
+   -Duracion en horas
+   -Porcentaje del dia que representa la actividad
+   -Horas restantes del dia
+   -Formato AM/PM del horario
+   -El momento del dia en que inicia y termina la actividad
+
+## Como usarlo:
+   1- Verifica que cuentas con python 3 instalado
+   2- Descarga el repositorio
+   3- Abre una terminal en la carpeta del proyecto
+   4- Ejecuta py Proyecto.py
+   5- Define que tipo de horas quieres almacenar,
+      respeta la mayuscula inicial
+   6- Ingresa el dia, hora de inicio y fin
+   7- Indica si se trata de AM o PM
+   8- Ve el resumen generado por el codigo
