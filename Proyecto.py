@@ -145,6 +145,70 @@ def programar_libre():
     print("Horas para usar restantes:", calcular_horas_libres(duracion_tiempo_libre))
     return [dia_libre, ["descanso"], [[hora_inicio_tiempo_libre, hora_final_tiempo_libre, duracion_tiempo_libre]]]
 #Pide un tiempo libre hasta que las horas sean validas y muestra los resultados obtenidos
+
+
+def crear_matriz(filas, columnas):
+    matriz = []
+    for i in range(filas):
+        fila = []
+        for j in range(columnas):
+            fila.append(0)
+        matriz.append(fila)
+    return matriz
+#Crea una matriz con ceros para ingesar datos posteriormente
+
+
+def llenar_matriz_horas(dias_programados):
+    matriz = crear_matriz(len(dias_programados), 4)
+    for i in range(len(dias_programados)):
+        totales = horas_por_momento(dias_programados[i][2])
+        for j in range(4):
+            matriz[i][j] = totales[j]
+    return matriz
+#Llena la matriz creada anteriormente, cada fila es un dia y cada columna un momento del dia (Break of day, Morning, Afternoon, Night)
+
+
+def mostrar_matriz_horas(dias_programados, matriz):
+    momentos = ["Break of day", "Morning", "Afternoon", "Night"]
+    print("Matriz de horas (filas = dias, columnas = momentos del dia)")
+    print("Momentos:", momentos)
+    for i in range(len(matriz)):
+        print(dias_programados[i][0], ":", matriz[i])
+#Imprime la matriz fila por fila indicando a que dia corresponde cada una
+
+
+def totales_por_dia(matriz):
+    totales = []
+    for fila in matriz:
+        suma = 0
+        for valor in fila:
+            suma = suma + valor
+        totales.append(suma)
+    return totales
+#Suma cada fila de la matriz y regresa las horas ocupadas por cada dia 
+
+
+def totales_por_momento_semana(matriz):
+    totales = [0, 0, 0, 0]
+    for fila in matriz:
+        for j in range(4):
+            totales[j] = totales[j] + fila[j]
+    return totales
+#Suma cada columna de la matriz para obtener las horas ocupadas por momentos (Break of day, Morning, Afternoon, Night) en todos los dias
+
+
+def actividad_mas_larga(dias_programados):
+    mayor = 0
+    nombre_mayor = ""
+    dia_mayor = ""
+    for dia_programado in dias_programados:
+        for i in range(len(dia_programado[2])):
+            if dia_programado[2][i][2] > mayor:
+                mayor = dia_programado[2][i][2]
+                nombre_mayor = dia_programado[1][i]
+                dia_mayor = dia_programado[0]
+    return dia_mayor, nombre_mayor, mayor
+#Recorre la lista anidada [dia, nombres, actividades] para encontrar la actividad de mayor duracion
  
  
 def main():
@@ -159,6 +223,11 @@ def main():
         otro_dia = leer_opcion("Programar otro dia? Si o No: ", "Si", "No")
     for dia_programado in dias_programados:
         mostrar_resumen_dia(dia_programado[0], dia_programado[1], dia_programado[2])
+    matriz_horas = llenar_matriz_horas(dias_programados)
+    mostrar_matriz_horas(dias_programados, matriz_horas)
+    print("Horas ocupadas por dia:", totales_por_dia(matriz_horas))
+    print("Horas ocupadas por momento (todos los dias):", totales_por_momento_semana(matriz_horas))
+    print("Actividad mas larga (Dia/Nombre/Duracion):", actividad_mas_larga(dias_programados))
  
 if __name__ == "__main__":
     main()
