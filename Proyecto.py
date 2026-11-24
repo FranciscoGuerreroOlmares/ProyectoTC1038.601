@@ -1,255 +1,457 @@
+HORAS_POR_DIA = 24
+HORAS_POR_MOMENTO = 6
+MOMENTOS = ["Amanecer", "Dia", "Tarde", "Noche"]
+DIAS_DE_LA_SEMANA = ["LUNES", "MARTES", "MIERCOLES",
+                     "JUEVES", "VIERNES",
+                     "SABADO", "DOMINGO"]
+DIGITOS_VALIDOS = "0123456789"
+SEPARADOR_MENU = "-" * 40
+NOMBRE_ARCHIVO_CREADO = "horario.txt"
+SEPARADOR_ARCHIVO = "/"
+
+
 def calcular_duracion(hora_1, hora_2):
+    """Regresa la duracion entre dos horas"""
     return hora_2 - hora_1
-#Ejecuta una resta para determinar el tiempo total transcurrido
 
 
 def calcular_porcentaje_dia(duracion_correcta):
-    return int(duracion_correcta / 24 * 100)
-#Realiza una division seguida de una multiplicacion para calcular el porcentaje del dia usado
+    """Regresa el porcentaje del dia que ocupa una actividad"""
+    return int(duracion_correcta / HORAS_POR_DIA * 100 + 0.5)
 
 
 def generar_resumen(dia, duracion, porcentaje):
-    return dia, duracion, porcentaje
-#Genera un resumen en base a los datos obtenidos previamente
+    """Regresa una lista con el dia, la duracion
+    y el porcentaje programados"""
+    return [dia, duracion, porcentaje]
+
+
+def convertir_hora(hora):
+    """Convierte una hora de 0 a 24 al formato
+    de horas y minutos y AM/PM"""
+    minutos_totales = int(hora * 60)
+    horas = minutos_totales // 60
+    minutos = minutos_totales % 60
+    momento = "AM"
+    if horas >= 12 and horas < 24:
+        momento = "PM"
+    hora_12 = ((horas - 1) % 12) + 1
+    texto_minutos = str(minutos)
+    if minutos < 10:
+        texto_minutos = "0" + texto_minutos
+    return str(hora_12) + ":" + texto_minutos + " " + momento
 
 
 def formato_hora(hora_1, hora_2):
-    hora_programada_i = ((hora_1 - 1) % 12) + 1
-    hora_programada_f = ((hora_2 - 1) % 12) + 1
-    if hora_1 < 12 or hora_1 == 24:
-        momento_i = "AM"
-    else:
-        momento_i = "PM"
-    if hora_2 < 12 or hora_2 == 24:
-        momento_f = "AM"
-    else:
-        momento_f = "PM"
-    return hora_programada_i, momento_i, "a", hora_programada_f, momento_f
-#Acomoda las horas ingresadas (0 a 24) al formato de AM/PM por medio de una resta, seguido de su residuo al dividirse entre 12
+    """Regresa la duracion entre dos horas en formato AM/PM"""
+    return convertir_hora(hora_1) + " a " + convertir_hora(hora_2)
 
 
 def horas_validas(hora_1, hora_2):
-    if hora_2 > hora_1:
-        return "Horas validas"
-    else:
-        return "Ingrese horas validas"
-#Compara horas ingresadas para determinar si son posibles o irreales
+    """Indica si la hora final es mayor que la inicial,
+    esto para ver si es valida o no"""
+    return hora_2 > hora_1
 
 
-def hay_empalme(hora_1, hora_2, actividades):
+def verificar_empalme(hora_1, hora_2, actividades):
+    """Indica si el bloque nuevo se empalma con alguna actividad"""
     for actividad in actividades:
         if hora_1 < actividad[1] and actividad[0] < hora_2:
             return True
     return False
-#Compara el bloque nuevo contra cada actividad ya guardada. Si uno termina justo cuando empieza otro (10 a 12 y 12 a 14) no cuenta como empalme
 
 
 def calcular_horas_libres(horas_usadas):
-    return 24 - horas_usadas
-#Ejecuta una resta para determinar las horas libres restantes
+    """Regresa las horas que quedan libres para el dia"""
+    return HORAS_POR_DIA - horas_usadas
 
 
 def momento_dia(hora_usada):
-    momentos = ["Break of day", "Morning", "Afternoon", "Night"]
-    parte_dia = int(hora_usada // 6) % 4
-    return momentos[parte_dia]
-#Por medio de una division entera de la hora entre 6 y su residuo entre 4 para determinar en que momento del dia cae la hora, determinandolo por su posicion en una lista
+    """Regresa el momento del dia en que inicia una acividad"""
+    parte_dia = int(hora_usada // HORAS_POR_MOMENTO) % 4
+    return MOMENTOS[parte_dia]
+
+
+def momento_dia_final(hora_final):
+    """Regresa el momento del dia en el que termina una actividad"""
+    return momento_dia(hora_final - 0.01)
+
+
+def es_digitos(texto):
+    """Indica si el texto tiene digitos y si los tiene,
+    que sean digitos del 0 al 9 (osea validos)"""
+    if len(texto) == 0:
+        return False
+    for caracter in texto:
+        if caracter not in DIGITOS_VALIDOS:
+            return False
+    return True
+
+
+def es_numero(texto):
+    """Indica si el texto es un numero positivo con punto opcional"""
+    if len(texto) > 10:
+        return False
+    partes = texto.split(".")
+    if len(partes) == 1:
+        return es_digitos(partes[0])
+    if len(partes) == 2:
+        return es_digitos(partes[0]) and es_digitos(partes[1])
+    return False
 
 
 def leer_opcion(mensaje, opcion_1, opcion_2):
-    opcion = input(mensaje).lower()
+    """Pide una opcion hasta que sea una de las dos permitidas"""
+    opcion = input(mensaje).strip().lower()
     while opcion != opcion_1.lower() and opcion != opcion_2.lower():
-        opcion = input("Ingresa una opcion valida: ").lower()
+        opcion = input("Ingresa una opcion valida: ")
+        opcion = opcion.strip().lower()
     return opcion
-#Pide una opcion hasta que sea una de las dos permitidas, el .lower() convierte todo a minusculas, asi concualquier opcion de si funciona el codigo
+
+
+def leer_entero(mensaje, minimo, maximo):
+    """Pide un entero entre un minimo y un maximo
+    hasta que cumpla el requisito"""
+    numero = minimo - 1
+    while numero < minimo:
+        texto = input(mensaje).strip()
+        if es_digitos(texto) and len(texto) <= 3:
+            if minimo <= int(texto) <= maximo:
+                numero = int(texto)
+        if numero < minimo:
+            print("Ingresa un numero entre", minimo, "y", maximo)
+    return numero
 
 
 def leer_texto(mensaje):
-    texto = input(mensaje)
+    """Pide un texto, si no se escribe algo lo vuelve a pedir"""
+    texto = input(mensaje).strip()
     while len(texto) == 0:
-        texto = input("Escribr algo: ")
+        texto = input("Escribe algo: ").strip()
     return texto
-#Pide un texto hasta que no este vacio, revisando su longitud con len()
+
 
 def leer_hora(mensaje):
-    hora = float(input(mensaje))
-    while hora < 0 or hora > 24:
-        hora = float(input("La hora debe estar entre 0 y 24: "))
+    """Pide una hora entre 0 y 24 hasta que la hora sea valida"""
+    hora = -1.0
+    while hora < 0.0:
+        texto = input(mensaje).strip().replace(",", ".")
+        valida = es_numero(texto)
+        if valida:
+            valor = float(texto)
+            valida = valor <= HORAS_POR_DIA and valor * 4 == int(valor * 4)
+        if valida:
+            hora = valor
+        else:
+            print("Ingresa un numero entre 0 y 24")
     return hora
-#Pide una hora hasta que esta este entre 0 y 24 (que sea valida)
 
 
-def mostrar_bloque(nombre_actividad, dia, hora_inicio, hora_final, duracion, porcentaje):
-    print("Tu actividad", nombre_actividad.upper(), "abarca:", formato_hora(hora_inicio, hora_final))
-    print("Duracion:", duracion, "hrs/hr")
+def leer_bloque(actividades, total_ocupado):
+    """Pide inicio y final hasta formar un bloque valido"""
+    valido = False
+    while not valido:
+        hora_inicio = leer_hora("Inicio actividad (0 a 24): ")
+        hora_final = leer_hora("Final actividad (0 a 24): ")
+        duracion = calcular_duracion(hora_inicio, hora_final)
+        if not horas_validas(hora_inicio, hora_final):
+            print("La hora final debe ser mayor a la inicial")
+        elif verificar_empalme(hora_inicio, hora_final, actividades):
+            print("Ese horario se empalma con otra actividad")
+        elif total_ocupado + duracion > HORAS_POR_DIA:
+            print("La actividad no puede pasar de 24 hrs en total")
+        else:
+            valido = True
+    return hora_inicio, hora_final
+
+
+def mostrar_bloque(nombre_actividad, dia, hora_inicio, hora_final,
+                   duracion, porcentaje):
+    """Imprime los resultados de un bloque de tiempo"""
+    resumen = generar_resumen(dia, duracion, porcentaje)
+    print(SEPARADOR_MENU)
+    print("Tu actividad", nombre_actividad.upper(), "abarca:",
+          formato_hora(hora_inicio, hora_final))
+    print("Duracion:", duracion, "hrs")
     print("Porcentaje del dia usado:", porcentaje, "%")
-    print("Resumen (Dia/Duracion/Uso):", generar_resumen(dia, duracion, porcentaje))
-    print("Horario valido?:", horas_validas(hora_inicio, hora_final))
+    print("Resumen (Dia/Duracion/Uso):", resumen[0], "|",
+          resumen[1], "hrs |", resumen[2], "%")
+    print("Horario valido?: Si")
     print("Momento del dia en que inicia:", momento_dia(hora_inicio))
-    print("Momento del dia en que termina:", momento_dia(hora_final))
-#Imprime los resultados de un bloque de tiempo en base a lo registrado por el usuario, el .upper() muestra el nombre de la actividad en mayusculas para una mayor visibilidsd
+    print("Momento del dia en que termina:",
+          momento_dia_final(hora_final))
 
 
-def mostrar_lista_actividades(actividades):
-    i = 1
+def mostrar_lista_actividades(nombres, actividades):
+    """Muestra las actividades registradas hasta el momento"""
+    for i in range(len(actividades)):
+        print("Actividad numero", i + 1, ":", nombres[i], "|",
+              formato_hora(actividades[i][0], actividades[i][1]),
+              "| duracion:", actividades[i][2], "hrs")
+
+
+def horas_en_rango(actividades, rango_inicio, rango_fin):
+    """Suma las horas de las actividades que caen dentro de un rango"""
+    total = 0.0
     for actividad in actividades:
-        print("Actividad numero", i, ":", formato_hora(actividad[0], actividad[1]), "con duracion:", actividad[2])
-        i = i + 1
-#Muestra al terminar de definir un dia un resumen de este con ayuda de un ciclo for
+        inicio = max(actividad[0], rango_inicio)
+        fin = min(actividad[1], rango_fin)
+        if fin > inicio:
+            total = total + fin - inicio
+    return total
 
 
 def horas_por_momento(actividades):
-    totales = [0, 0, 0, 0]
-    for actividad in actividades:
-        parte_dia = int(actividad[0] // 6) % 4
-        totales[parte_dia] = totales[parte_dia] + actividad[2]
-    return totales
-#Funcion que muestra el total de horas ocupadas en cada momento del dia (morning, break of the day, etc), con ayuda de listas y un ciclo for
+    """Regresa las horas ocupadas en cada momento del dia"""
+    amanecer = horas_en_rango(actividades, 0, 6)
+    dia = horas_en_rango(actividades, 6, 12)
+    tarde = horas_en_rango(actividades, 12, 18)
+    noche = horas_en_rango(actividades, 18, 24)
+    return [amanecer, dia, tarde, noche]
 
 
 def mostrar_resumen_dia(dia, nombres, actividades):
-    momentos = ["Break of day", "Morning", "Afternoon", "Night"]
+    """Muestra el resumen final de un dia programado"""
     totales = horas_por_momento(actividades)
-    print("-" * 40)
+    print(SEPARADOR_MENU)
     print("Resumen final del dia:", dia)
     for i in range(len(nombres)):
-        print(i + 1, "actividad", nombres[i], "que dura:", actividades[i][2], "hrs")
-    for i in range(len(momentos)):
-        print(momentos[i], ":", totales[i], "hrs")
-#Funcion que realiza un resumen acumulativo total aclarando el dia que se esta programando con ayuda de listas y siendo entregado al usuario al finalizar su horario. "-" * 40 repite el caracter para hacer una linea separadora
+        print(i + 1, "actividad", nombres[i], "que dura:",
+              actividades[i][2], "hrs")
+    for i in range(len(MOMENTOS)):
+        print(MOMENTOS[i], ":", totales[i], "hrs")
 
 
-def programar_ocupada():
-    dia = leer_texto("Escribe el dia que quieres programar: ").upper()
-    total_ocupado = 0
+def programar_ocupada(dia):
+    """Agrega actividades a un dia hasta terminar o llegar a 24 hrs"""
+    total_ocupado = 0.0
     seguir = "si"
     actividades = []
     nombres = []
-    while total_ocupado < 24 and seguir == "si":
-        nombre_actividad = leer_texto("Ingresa el nombre de tu actividad a programar: ")
-        hora_inicio_actividad = leer_hora("Inicio actividad: ")
-        hora_final_actividad = leer_hora("Final actividad: ")
-        while horas_validas(hora_inicio_actividad, hora_final_actividad) != "Horas validas" or hay_empalme(hora_inicio_actividad, hora_final_actividad, actividades) or total_ocupado + calcular_duracion(hora_inicio_actividad, hora_final_actividad) > 24:
-            if horas_validas(hora_inicio_actividad, hora_final_actividad) != "Horas validas":
-                print("La hora final debe ser mayor a la inicial")
-            elif hay_empalme(hora_inicio_actividad, hora_final_actividad, actividades):
-                print("Ese horario se empalma con otra actividad")
-            else:
-                print("La actividad no puede pasar de 24 hrs en total")
-            hora_inicio_actividad = leer_hora("Inicio actividad: ")
-            hora_final_actividad = leer_hora("Final actividad: ")
-        duracion_actividad = calcular_duracion(hora_inicio_actividad, hora_final_actividad)
-        actividades.append([hora_inicio_actividad, hora_final_actividad, duracion_actividad])
+    while total_ocupado < HORAS_POR_DIA and seguir == "si":
+        nombre_actividad = leer_texto("Nombre de la actividad: ")
+        hora_inicio, hora_final = leer_bloque(actividades, total_ocupado)
+        duracion = calcular_duracion(hora_inicio, hora_final)
+        actividades.append([hora_inicio, hora_final, duracion])
         nombres.append(nombre_actividad)
-        total_ocupado = total_ocupado + duracion_actividad
-        porcentaje_dia = calcular_porcentaje_dia(total_ocupado)
-        mostrar_bloque(nombre_actividad, dia, hora_inicio_actividad, hora_final_actividad, duracion_actividad, porcentaje_dia)
-        mostrar_lista_actividades(actividades)
-        print("Horas libres restantes:", calcular_horas_libres(total_ocupado))
-        if total_ocupado < 24:
-            seguir = leer_opcion("Agregar otra actividad? Si o No: ", "Si", "No")
+        total_ocupado = total_ocupado + duracion
+        porcentaje = calcular_porcentaje_dia(total_ocupado)
+        mostrar_bloque(nombre_actividad, dia, hora_inicio, hora_final,
+                       duracion, porcentaje)
+        mostrar_lista_actividades(nombres, actividades)
+        print("Horas libres restantes:",
+              calcular_horas_libres(total_ocupado))
+        if total_ocupado < HORAS_POR_DIA:
+            seguir = leer_opcion("Agregar otra actividad? Si o No: ",
+                                 "Si", "No")
     return [dia, nombres, actividades]
-#Agrega actividades del dia hasta que el usuario quiera terminar o se completen las 24 hrs, sin permitir que se empalmen
 
 
-def programar_libre():
-    dia_libre = leer_texto("Escribe el dia que quieres programar: ").upper()
-    hora_inicio_tiempo_libre = leer_hora("Inicio de tiempo libre: ")
-    hora_final_tiempo_libre = leer_hora("Final de tiempo libre: ")
-    while horas_validas(hora_inicio_tiempo_libre, hora_final_tiempo_libre) != "Horas validas":
-        print("Ingrese horas validas")
-        hora_inicio_tiempo_libre = leer_hora("Inicio de tiempo libre: ")
-        hora_final_tiempo_libre = leer_hora("Final de tiempo libre: ")
-    duracion_tiempo_libre = calcular_duracion(hora_inicio_tiempo_libre, hora_final_tiempo_libre)
-    porcentaje_dia_libre = calcular_porcentaje_dia(duracion_tiempo_libre)
-    mostrar_bloque("descanso", dia_libre, hora_inicio_tiempo_libre, hora_final_tiempo_libre, duracion_tiempo_libre, porcentaje_dia_libre)
-    print("Horas para usar restantes:", calcular_horas_libres(duracion_tiempo_libre))
-    return [dia_libre, ["descanso"], [[hora_inicio_tiempo_libre, hora_final_tiempo_libre, duracion_tiempo_libre]]]
-#Pide un tiempo libre hasta que las horas sean validas y muestra los resultados obtenidos
-
-
-def crear_matriz(filas, columnas):
-    matriz = []
-    for i in range(filas):
-        fila = []
-        for j in range(columnas):
-            fila.append(0)
-        matriz.append(fila)
-    return matriz
-#Crea una matriz con ceros para ingresar datos posteriormente
+def programar_libre(dia):
+    """Registra un bloque de tiempo libre para un dia"""
+    hora_inicio, hora_final = leer_bloque([], 0.0)
+    duracion = calcular_duracion(hora_inicio, hora_final)
+    porcentaje = calcular_porcentaje_dia(duracion)
+    mostrar_bloque("descanso", dia, hora_inicio, hora_final, duracion,
+                   porcentaje)
+    print("Horas para usar restantes:", calcular_horas_libres(duracion))
+    return [dia, ["descanso"], [[hora_inicio, hora_final, duracion]]]
 
 
 def llenar_matriz_horas(dias_programados):
-    matriz = crear_matriz(len(dias_programados), 4)
-    for i in range(len(dias_programados)):
-        totales = horas_por_momento(dias_programados[i][2])
-        for j in range(4):
-            matriz[i][j] = totales[j]
+    """Crea una matriz, cada fila es un dia  y cada columna un momento"""
+    matriz = []
+    for dia_programado in dias_programados:
+        matriz.append(horas_por_momento(dia_programado[2]))
     return matriz
-#Llena la matriz creada anteriormente, cada fila es un dia y cada columna un momento del dia (Break of day, Morning, Afternoon, Night)
 
 
 def mostrar_matriz_horas(dias_programados, matriz):
-    momentos = ["Break of day", "Morning", "Afternoon", "Night"]
-    print("Matriz de horas (filas = dias, columnas = momentos del dia)")
-    print("Momentos:", momentos)
+    """Imprime la matriz de las horas indicando el dia de cada fila"""
+    print("Matriz de horas (filas = dias, columnas = momentos)")
+    print("Momentos:", MOMENTOS)
     for i in range(len(matriz)):
         print(dias_programados[i][0][:3], ":", matriz[i])
-#Imprime la matriz fila por fila indicando a que dia corresponde cada una, el [:3] corta el nombre del dia a sus primeras 3 letras para no mostrar un msj tan largo  
 
 
 def totales_por_dia(matriz):
+    """Regresa las horas ocupadas en cada dia, osea la suma de cada fila"""
     totales = []
     for fila in matriz:
-        suma = 0
-        for valor in fila:
-            suma = suma + valor
-        totales.append(suma)
+        totales.append(sum(fila))
     return totales
-#Suma cada fila de la matriz y regresa las horas ocupadas por cada dia
 
 
 def totales_por_momento_semana(matriz):
-    totales = [0, 0, 0, 0]
+    """Regresa las horas por momento de toda la semana"""
+    totales = [0.0, 0.0, 0.0, 0.0]
     for fila in matriz:
-        for j in range(4):
-            totales[j] = totales[j] + fila[j]
+        totales[0] = totales[0] + fila[0]
+        totales[1] = totales[1] + fila[1]
+        totales[2] = totales[2] + fila[2]
+        totales[3] = totales[3] + fila[3]
     return totales
-#Suma cada columna de la matriz para obtener las horas ocupadas por momentos (Break of day, Morning, Afternoon, Night) en todos los dias
+
+
+def actividad_mas_larga_dia(dia_programado):
+    """Regresa el nombre y la duracion de la actividad mas larga"""
+    nombres = dia_programado[1]
+    datos = dia_programado[2]
+    mayor = 0
+    nombre_mayor = ""
+    for i in range(len(nombres)):
+        duracion = datos[i][2]
+        if duracion > mayor:
+            mayor = duracion
+            nombre_mayor = nombres[i]
+    return nombre_mayor, mayor
 
 
 def actividad_mas_larga(dias_programados):
-    mayor = 0
+    """Regresa el dia, nombre y duracion de la actividad mas larga"""
+    mayor = 0.0
     nombre_mayor = ""
     dia_mayor = ""
     for dia_programado in dias_programados:
-        for i in range(len(dia_programado[2])):
-            if dia_programado[2][i][2] > mayor:
-                mayor = dia_programado[2][i][2]
-                nombre_mayor = dia_programado[1][i]
-                dia_mayor = dia_programado[0]
+        nombre, duracion = actividad_mas_larga_dia(dia_programado)
+        if duracion > mayor:
+            mayor = duracion
+            nombre_mayor = nombre
+            dia_mayor = dia_programado[0]
     return dia_mayor, nombre_mayor, mayor
-#Recorre la lista anidada [dia, nombres, actividades] para encontrar la actividad de mayor duracion
 
 
-def main():
-    otro_dia = "si"
-    dias_programados = []
-    while otro_dia == "si":
-        Actividad_a_programar = leer_opcion("Ingresa tu tipo de hora, Ocupada o Libre: ", "Ocupada", "Libre")
-        if Actividad_a_programar == "ocupada":
-            dias_programados.append(programar_ocupada())
-        else:
-            dias_programados.append(programar_libre())
-        otro_dia = leer_opcion("Programar otro dia? Si o No: ", "Si", "No")
+def nombres_programados(dias_programados):
+    """Regresa la lista con los nombres de los dias ya programados"""
+    nombres = []
     for dia_programado in dias_programados:
-        mostrar_resumen_dia(dia_programado[0], dia_programado[1], dia_programado[2])
-    matriz_horas = llenar_matriz_horas(dias_programados)
-    mostrar_matriz_horas(dias_programados, matriz_horas)
-    print("Horas ocupadas por dia:", totales_por_dia(matriz_horas))
-    print("Horas ocupadas por momento (todos los dias):", totales_por_momento_semana(matriz_horas))
-    print("Actividad mas larga (Dia/Nombre/Duracion):", actividad_mas_larga(dias_programados))
+        nombres.append(dia_programado[0])
+    return nombres
 
 
-if __name__ == "__main__":
-    main()
+def leer_dia(dias_programados):
+    """Pide un dia de la semana que aun no este programado
+    con actividades o tiempo libre"""
+    programados = nombres_programados(dias_programados)
+    print("Dias de la semana:")
+    for i in range(len(DIAS_DE_LA_SEMANA)):
+        marca = ""
+        if DIAS_DE_LA_SEMANA[i] in programados:
+            marca = "(ya programado)"
+        print(i + 1, "-", DIAS_DE_LA_SEMANA[i], marca)
+    dia = ""
+    elegido = -1
+    while dia == "" and elegido != 0:
+        elegido = leer_entero("Dia a programar (0 para cancelar): ", 0, 7)
+        if elegido != 0:
+            if DIAS_DE_LA_SEMANA[elegido - 1] in programados:
+                print("Ese dia ya esta programado")
+            else:
+                dia = DIAS_DE_LA_SEMANA[elegido - 1]
+    return dia
+
+
+def agregar_dia(dias_programados, es_ocupado):
+    """Programa un dia nuevo, ya sea con actividades o libre"""
+    if len(dias_programados) == len(DIAS_DE_LA_SEMANA):
+        print("Ya programaste los 7 dias,elimina uno para poder cambiarlo")
+    else:
+        dia = leer_dia(dias_programados)
+        if dia == "":
+            print("Programacion cancelada")
+        elif es_ocupado:
+            dias_programados.append(programar_ocupada(dia))
+        else:
+            dias_programados.append(programar_libre(dia))
+
+
+def ver_resumenes(dias_programados):
+    """Muestra el resumen de todos los dias programados por el usuario"""
+    if len(dias_programados) == 0:
+        print("Aun no hay dias programados")
+    for dia_programado in dias_programados:
+        mostrar_resumen_dia(dia_programado[0], dia_programado[1],
+                            dia_programado[2])
+
+
+def ver_estadisticas(dias_programados):
+    """Muestra la matriz de horas y las estadisticas de
+    la semana programada"""
+    if len(dias_programados) == 0:
+        print("Aun no hay dias programados")
+    else:
+        matriz_horas = llenar_matriz_horas(dias_programados)
+        print(SEPARADOR_MENU)
+        mostrar_matriz_horas(dias_programados, matriz_horas)
+        print("Horas ocupadas por dia:", totales_por_dia(matriz_horas))
+        print("Horas ocupadas por momento (todos los dias):",
+              totales_por_momento_semana(matriz_horas))
+        print("Actividad mas larga (Dia/Nombre/Duracion):",
+              actividad_mas_larga(dias_programados))
+
+
+def eliminar_dia(dias_programados):
+    """Elimina un dia programado despues de que el usuario lo confirme"""
+    if len(dias_programados) == 0:
+        print("Aun no hay dias programados")
+    else:
+        for i in range(len(dias_programados)):
+            print(i + 1, "-", dias_programados[i][0])
+        dia_elegido = leer_entero("Dia a eliminar (0 para cancelar): ", 0,
+                                  len(dias_programados))
+        if dia_elegido != 0:
+            confirmar = leer_opcion("Seguro? Si o No: ", "Si", "No")
+            if confirmar == "si":
+                dias_programados.pop(dia_elegido - 1)
+                print("Dia eliminado")
+
+
+def guardar_horario(dias_programados):
+    """Guarda los dias programados en el archivo, una actividad por linea"""
+    if len(dias_programados) == 0:
+        print("Aun no hay dias programados para guardar")
+    else:
+        archivo = open(NOMBRE_ARCHIVO_CREADO, "w")
+        for dia_programado in dias_programados:
+            for i in range(len(dia_programado[1])):
+                nombre = dia_programado[1][i].replace(SEPARADOR_ARCHIVO, "/")
+                actividad = dia_programado[2][i]
+                archivo.write(dia_programado[0] + SEPARADOR_ARCHIVO +
+                              nombre + SEPARADOR_ARCHIVO +
+                              str(actividad[0]) + SEPARADOR_ARCHIVO +
+                              str(actividad[1]) + "\n")
+        archivo.close()
+        print("Horario guardado en", NOMBRE_ARCHIVO_CREADO)
+
+
+def mostrar_menu():
+    """Imprime las opciones a modo de menu"""
+    print(SEPARADOR_MENU)
+    print("MENU PRINCIPAL")
+    print("1- Programar un dia con actividades")
+    print("2- Programar un dia libre")
+    print("3- Ver resumen de los dias")
+    print("4- Ver matriz y estadisticas de la semana")
+    print("5- Eliminar un dia programado")
+    print("6- Guardar horario en archivo")
+    print("7- Salir")
+
+
+dias_programados = []
+opcion = 0
+while opcion != 7:
+    mostrar_menu()
+    opcion = leer_entero("Elige una opcion (1 a 7): ", 1, 7)
+    if opcion == 1:
+        agregar_dia(dias_programados, True)
+    elif opcion == 2:
+        agregar_dia(dias_programados, False)
+    elif opcion == 3:
+        ver_resumenes(dias_programados)
+    elif opcion == 4:
+        ver_estadisticas(dias_programados)
+    elif opcion == 5:
+        eliminar_dia(dias_programados)
+    elif opcion == 6:
+        guardar_horario(dias_programados)
+print("Bye")
